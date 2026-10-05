@@ -16,18 +16,6 @@ improves WBench Overall over original inference on all three models.
 
 This repository hosts the project page. The method code will be released separately.
 
-## Contents
-
-| Path | What it holds |
-|---|---|
-| `index.html` | The project page |
-| `videos/` | Side-by-side comparison videos for each backbone, panels left to right: Original, TeaCache, EasyCache, CtrlCache |
-| `static/images/` | Figures from the paper |
-| `static/posters/` | Thumbnail frames for the video browser |
-| `static/paper.pdf` | The paper |
-
-For each video, all methods use the same initial frame, prompt, control sequence and random seed.
-
 ## Citation
 
 ```bibtex
