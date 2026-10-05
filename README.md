@@ -4,7 +4,8 @@
 
 Shangye Song<sup>1</sup>, Dong Gong<sup>2</sup>, Hong Jia<sup>1</sup>, Yun Sing Koh<sup>1</sup>, Xinyu Zhang<sup>1,*</sup>
 
-<sup>1</sup>University of Auckland · <sup>2</sup>UNSW Sydney · <sup>*</sup>Corresponding author
+<sup>1</sup>University of Auckland · <sup>2</sup>UNSW Sydney<br>
+<sup>*</sup>Corresponding author
 
 ---
 
