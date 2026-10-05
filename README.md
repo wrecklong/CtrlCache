@@ -1,10 +1,40 @@
-# CtrlCache project page
+# CtrlCache: Accelerating Interactive Video World Models with Control-Aware Caching
 
-Static page: `index.html` + `static/` (figures, paper PDF) + `videos/` (copied from `../anon_site/videos`).
+**[Project page](https://wrecklong.github.io/CtrlCache/)** · **[Paper (PDF)](https://wrecklong.github.io/CtrlCache/static/paper.pdf)** · arXiv (coming soon) · Code (coming soon)
 
-Preview locally:
+Shangye Song<sup>1</sup>, Dong Gong<sup>2</sup>, Hong Jia<sup>1</sup>, Yun Sing Koh<sup>1</sup>, Xinyu Zhang<sup>1</sup>
 
-    cd project_page && python -m http.server 8000   # open http://localhost:8000
+<sup>1</sup>School of Computer Science, University of Auckland · <sup>2</sup>School of Computer Science and Engineering, UNSW Sydney
 
-Before publishing, fill in the `TODO` markers in `index.html` (authors, affiliations, arXiv link, BibTeX).
-Deploy with GitHub Pages by pushing this folder as the repository root.
+---
+
+CtrlCache is a training-free caching framework for interactive video world models. The controls for a chunk are known
+before the chunk is denoised, so CtrlCache uses them to decide when cached transformer computation can be reused and
+when it must be refreshed. A frequency-mixed history prior also carries coarse scene structure forward during steady
+interaction. On Matrix-Game 2.0 and LingBot-World v1/v2, CtrlCache speeds up the DiT backbone by 1.21×–1.41× and
+improves WBench Overall over original inference on all three models.
+
+This repository hosts the project page. The method code will be released separately.
+
+## Contents
+
+| Path | What it holds |
+|---|---|
+| `index.html` | The project page |
+| `videos/` | Side-by-side comparison videos for each backbone, panels left to right: Original, TeaCache, EasyCache, CtrlCache |
+| `static/images/` | Figures from the paper |
+| `static/posters/` | Thumbnail frames for the video browser |
+| `static/paper.pdf` | The paper |
+
+For each video, all methods use the same initial frame, prompt, control sequence and random seed.
+
+## Citation
+
+```bibtex
+@article{ctrlcache2026,
+  title   = {CtrlCache: Accelerating Interactive Video World Models with Control-Aware Caching},
+  author  = {Song, Shangye and Gong, Dong and Jia, Hong and Koh, Yun Sing and Zhang, Xinyu},
+  journal = {arXiv preprint},
+  year    = {2026}
+}
+```
