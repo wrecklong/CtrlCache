@@ -105,6 +105,8 @@
   .tl-head { display:flex; justify-content:space-between; align-items:baseline; gap:6px 16px; flex-wrap:wrap; margin-bottom:16px; }
   .tl-title { font-weight:600; letter-spacing:-.01em; }
   .tl-sub { font-size:.8rem; color:var(--faint); }
+  .tl-sub b { color:var(--muted); font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .tl-turn svg { width:12px; height:12px; vertical-align:-1px; color:var(--muted); }
   .tl-grid > [data-col] { transition:opacity .45s, transform .45s; }
   .tl-grid.playing > [data-col] { opacity:.38; }
   .tl-grid.playing > [data-col].cur { opacity:1; }
@@ -329,7 +331,7 @@
     </div>
 
     <div class="timeline hero-tl" role="img" aria-label="Example control sequence: each chunk's state and per-step computation">
-      <div class="tl-head"><span class="tl-title">How the controls set the cache schedule</span><span class="tl-sub">Example · 6 chunks × 3 denoising steps</span></div>
+      <div class="tl-head"><span class="tl-title">How the controls set the cache schedule</span><span class="tl-sub">Example · 6 chunks × 3 denoising steps · keys: <b>W</b> forward, <b>A</b> move left, <span class="tl-turn"></span> turn camera left</span></div>
       <div class="tl-scroll"><div class="tl-grid" id="tl-grid"></div></div>
       <p class="tl-say" id="tl-say"></p>
       <div class="tl-legend">
@@ -389,7 +391,7 @@
       <div class="finding"><span class="n">2</span><p><b>Low frequencies persist.</b> Coarse layout stays similar across chunks much
         longer than fine detail, so it is safe to carry forward during steady interaction.</p></div>
     </div>
-    <figure class="figure"><img src="static/images/control_state.png" alt="Adjacent-chunk latent similarity under steady, turning and transition regimes"></figure>
+    <figure class="figure"><img src="static/images/control_state.png?v=2" alt="Adjacent-chunk latent similarity under steady, turning and transition regimes"></figure>
     <p class="cap">Cosine similarity between the clean latents of adjacent chunks for three representative sequences, split into
       full latent, low-frequency and high-frequency components. Shading marks the control regime of each chunk: non-turning
       (steady), sustained turning, and action change (transition).</p>
@@ -420,7 +422,7 @@
     <p class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
       Training free — model weights, sampler, control interface and persistent context are unchanged.</p>
 
-    <figure class="figure tight"><img src="static/images/pipeline.png" alt="CtrlCache pipeline"></figure>
+    <figure class="figure tight"><img src="static/images/pipeline.png?v=3" alt="CtrlCache pipeline"></figure>
     <p class="cap">Full pipeline. (a) Chunk-wise autoregressive denoising with residual reuse at the selected step;
       (b) the action-aware scheduling and refresh policy; (c) the frequency-mixed history prior guidance.</p>
   </section>
@@ -677,8 +679,8 @@
     { keys:["←","←","←","←"], chg:[],  note:"",                          state:"Turning",    cls:"s-turn",   mid:"reuse",   prior:false },
   ];
   const STEP = { full:["st-full","Full"], reuse:["st-reuse","Reuse"], refresh:["st-refresh","Refresh"] };
-  // Thin text arrows are hard to read at key size, so draw the camera-left control as an icon.
-  const ARROW = '<svg viewBox="0 0 16 16" aria-label="left"><path d="M13 8H3.5M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // The camera-turn control is drawn as a turn-left icon so it is not read as "move left".
+  const ARROW = '<svg viewBox="0 0 24 24" aria-label="turn left"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5V20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const glyphs = t => t.replace(/←/g, ARROW);
   const cell = (cls, html, col) => `<div class="${cls}"${col === undefined ? "" : ` data-col="${col}"`}>${html}</div>`;
   let g = cell("tl-row-label", "") + CHUNKS.map((_, i) => cell("tl-chunk-h", `Chunk ${i + 1}`, i)).join("");
@@ -693,6 +695,7 @@
   }).join("");
   g += cell("tl-row-label", "History") + CHUNKS.map((c, i) => cell(`prior ${c.prior ? "on" : "off"}`, c.prior ? "Prior" : "—", i)).join("");
   const tlGrid = document.getElementById("tl-grid");
+  document.querySelector(".tl-turn").innerHTML = ARROW;
   tlGrid.innerHTML = g;
 
   // Step through the chunks one at a time, explaining each decision.
@@ -701,8 +704,8 @@
     "<b>Chunk 2 · Steady</b> — controls unchanged: step <i>s</i> reuses the cached residual, and the history prior guides the first step.",
     "<b>Chunk 3 · Transition</b> — W changes to A inside the chunk: step <i>s</i> runs a full forward and refreshes the cache.",
     "<b>Chunk 4 · Steady</b> — A held: reuse at step <i>s</i>, again with the history prior.",
-    "<b>Chunk 5 · Transition</b> — every input is ←, but chunk 4 ended on A, so the action changes at the chunk boundary: full forward, cache refreshed.",
-    "<b>Chunk 6 · Turning</b> — sustained camera turn: reuse at step <i>s</i>, no history prior while the view rotates.",
+    "<b>Chunk 5 · Transition</b> — every input is ← (turn camera left), but chunk 4 ended on A (move left), so the action changes at the chunk boundary: full forward, cache refreshed.",
+    "<b>Chunk 6 · Turning</b> — the camera keeps turning left (←): reuse at step <i>s</i>, no history prior while the view rotates.",
   ];
   const say = document.getElementById("tl-say");
   let tlCol = 0, tlTimer = null;
