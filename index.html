@@ -111,6 +111,7 @@
   .tl-grid.playing > .state-chip.cur { transform:translateY(-2px); box-shadow:0 4px 12px -4px currentColor; }
   .tl-say { min-height:1.7em; margin:14px 0 0; font-size:.92rem; color:var(--muted); text-align:center; }
   .tl-say b { color:var(--fg); }
+  .tl-say svg { width:12px; height:12px; vertical-align:-1px; }
   .tldr { max-width:780px; margin:36px auto 0; text-align:center; color:var(--muted); font-size:1.02rem; }
   .tldr b { color:var(--fg); }
 
@@ -195,7 +196,12 @@
   .key { min-width:22px; height:24px; padding:0 4px; border-radius:6px; display:grid; place-items:center;
          font:600 12px/1 "JetBrains Mono", ui-monospace, monospace; background:var(--bg-2); color:var(--fg);
          border:1px solid var(--line); border-bottom-width:2px; }
-  .key.chg { background:var(--refresh-soft); border-color:var(--refresh); color:var(--refresh); }
+  .key svg { width:13px; height:13px; display:block; }
+  .key.chg { background:var(--refresh); border-color:var(--refresh); color:#fff; }
+  .chg-note { font-size:.72rem; font-weight:600; color:var(--faint); text-align:center; line-height:1.35; align-self:center; }
+  .chg-note.on { color:var(--refresh); }
+  .chg-note svg { width:11px; height:11px; display:inline-block; vertical-align:-1px; }
+  .chg-note .pair { white-space:nowrap; }
   .state-chip { text-align:center; font-size:.8rem; font-weight:600; border-radius:8px; padding:5px 4px; }
   .s-init, .s-trans { color:var(--full); background:var(--full-soft); }
   .s-turn, .s-steady { color:var(--reuse); background:var(--reuse-soft); }
@@ -212,7 +218,7 @@
   .tl-legend i { width:14px; height:14px; border-radius:4px; display:inline-block; }
   .tl-scroll { overflow-x:auto; }
   .tl-scroll .tl-grid { min-width:720px; }
-  .tl-scroll { padding-bottom:4px; }
+  .tl-scroll { padding-bottom:4px; position:relative; }
 
   .cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
   .cards > * { min-width:0; }
@@ -323,6 +329,7 @@
       <div class="tl-scroll"><div class="tl-grid" id="tl-grid"></div></div>
       <p class="tl-say" id="tl-say"></p>
       <div class="tl-legend">
+        <span><i style="background:var(--refresh)"></i>Control input where the action changes</span>
         <span><i style="background:var(--full-soft);box-shadow:inset 0 0 0 1px var(--full)"></i>Full DiT forward</span>
         <span><i style="background:var(--reuse-soft);box-shadow:inset 0 0 0 1px var(--reuse)"></i>Residual reuse (skip transformer blocks)</span>
         <span><i style="background:var(--refresh-soft);box-shadow:inset 0 0 0 1.5px var(--refresh)"></i>Refresh at an action change</span>
@@ -658,18 +665,23 @@
 
   // Method timeline: an example control stream and the resulting per-step schedule.
   const CHUNKS = [
-    { keys:["W","W","W","W"], chg:[],     state:"Initial",    cls:"s-init",   mid:"full",    prior:false },
-    { keys:["W","W","W","W"], chg:[],     state:"Steady",     cls:"s-steady", mid:"reuse",   prior:true  },
-    { keys:["W","W","A","A"], chg:[2],    state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
-    { keys:["A","A","A","A"], chg:[],     state:"Steady",     cls:"s-steady", mid:"reuse",   prior:true  },
-    { keys:["←","←","←","←"], chg:[0],    state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
-    { keys:["←","←","←","←"], chg:[],     state:"Turning",    cls:"s-turn",   mid:"reuse",   prior:false },
+    { keys:["W","W","W","W"], chg:[],  note:"",                          state:"Initial",    cls:"s-init",   mid:"full",    prior:false },
+    { keys:["W","W","W","W"], chg:[],  note:"",                          state:"Steady",     cls:"s-steady", mid:"reuse",   prior:true  },
+    { keys:["W","W","A","A"], chg:[2], note:"<span class='pair'>W→A</span> within chunk", state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
+    { keys:["A","A","A","A"], chg:[],  note:"",                          state:"Steady",     cls:"s-steady", mid:"reuse",   prior:true  },
+    { keys:["←","←","←","←"], chg:[0], note:"<span class='pair'>A→←</span> at boundary", state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
+    { keys:["←","←","←","←"], chg:[],  note:"",                          state:"Turning",    cls:"s-turn",   mid:"reuse",   prior:false },
   ];
   const STEP = { full:["st-full","Full"], reuse:["st-reuse","Reuse"], refresh:["st-refresh","Refresh"] };
+  // Thin text arrows are hard to read at key size, so draw the camera-left control as an icon.
+  const ARROW = '<svg viewBox="0 0 16 16" aria-label="left"><path d="M13 8H3.5M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const glyphs = t => t.replace(/←/g, ARROW).replace(/→/g, '<svg viewBox="0 0 16 16"><path d="M3 8h9.5M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
   const cell = (cls, html, col) => `<div class="${cls}"${col === undefined ? "" : ` data-col="${col}"`}>${html}</div>`;
   let g = cell("tl-row-label", "") + CHUNKS.map((_, i) => cell("tl-chunk-h", `Chunk ${i + 1}`, i)).join("");
   g += cell("tl-row-label", "Controls") + CHUNKS.map((c, i) =>
-    cell("ctrls", c.keys.map((k, j) => `<span class="key${c.chg.includes(j) ? " chg" : ""}">${k}</span>`).join(""), i)).join("");
+    cell("ctrls", c.keys.map((k, j) => `<span class="key${c.chg.includes(j) ? " chg" : ""}">${glyphs(k)}</span>`).join(""), i)).join("");
+  g += cell("tl-row-label", "Change") + CHUNKS.map((c, i) =>
+    cell(`chg-note${c.note ? " on" : ""}`, c.note ? glyphs(c.note) : "—", i)).join("");
   g += cell("tl-row-label", "State") + CHUNKS.map((c, i) => cell(`state-chip ${c.cls}`, c.state, i)).join("");
   g += cell("tl-row-label", "Denoising") + CHUNKS.map((c, i) => {
     const [mc, ml] = STEP[c.mid];
@@ -685,14 +697,18 @@
     "<b>Chunk 2 · Steady</b> — controls unchanged: step <i>s</i> reuses the cached residual, and the history prior guides the first step.",
     "<b>Chunk 3 · Transition</b> — W→A inside the chunk: step <i>s</i> runs a full forward and refreshes the cache.",
     "<b>Chunk 4 · Steady</b> — A held: reuse at step <i>s</i>, again with the history prior.",
-    "<b>Chunk 5 · Transition</b> — A→← across the chunk boundary: full forward, cache refreshed.",
+    "<b>Chunk 5 · Transition</b> — every input is ←, but chunk 4 ended on A, so the action changes at the chunk boundary: full forward, cache refreshed.",
     "<b>Chunk 6 · Turning</b> — sustained camera turn: reuse at step <i>s</i>, no history prior while the view rotates.",
   ];
   const say = document.getElementById("tl-say");
   let tlCol = 0, tlTimer = null;
   const showCol = i => {
     tlGrid.querySelectorAll("[data-col]").forEach(el => el.classList.toggle("cur", +el.dataset.col === i));
-    say.innerHTML = SAY[i];
+    say.innerHTML = glyphs(SAY[i]);
+    // On narrow screens the diagram scrolls sideways; keep the highlighted chunk in view.
+    const sc = tlGrid.parentElement, head = tlGrid.querySelector(`.tl-chunk-h[data-col="${i}"]`);
+    if (sc.scrollWidth > sc.clientWidth && head)
+      sc.scrollTo({ left:head.offsetLeft - (sc.clientWidth - head.offsetWidth) / 2, behavior:"smooth" });
   };
   const tlStart = () => { if (tlTimer) return; tlGrid.classList.add("playing"); showCol(tlCol);
     tlTimer = setInterval(() => { tlCol = (tlCol + 1) % CHUNKS.length; showCol(tlCol); }, 2600); };
@@ -705,7 +721,7 @@
     tlGrid.addEventListener("mouseleave", tlStart);
     // Hovering a column shows its explanation.
     tlGrid.addEventListener("mouseover", e => {
-      const c = e.target.closest("[data-col]"); if (c) { tlCol = +c.dataset.col; say.innerHTML = SAY[tlCol]; }
+      const c = e.target.closest("[data-col]"); if (c) { tlCol = +c.dataset.col; say.innerHTML = glyphs(SAY[tlCol]); }
     });
   }
 
