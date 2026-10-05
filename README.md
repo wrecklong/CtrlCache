@@ -2,9 +2,9 @@
 
 **[Project page](https://wrecklong.github.io/CtrlCache/)** · **[Paper (PDF)](https://wrecklong.github.io/CtrlCache/static/paper.pdf)** · arXiv (coming soon) · Code (coming soon)
 
-Shangye Song<sup>1</sup>, Dong Gong<sup>2</sup>, Hong Jia<sup>1</sup>, Yun Sing Koh<sup>1</sup>, Xinyu Zhang<sup>1</sup>
+Shangye Song<sup>1</sup>, Dong Gong<sup>2</sup>, Hong Jia<sup>1</sup>, Yun Sing Koh<sup>1</sup>, Xinyu Zhang<sup>1,*</sup>
 
-<sup>1</sup>School of Computer Science, University of Auckland · <sup>2</sup>School of Computer Science and Engineering, UNSW Sydney
+<sup>1</sup>University of Auckland · <sup>2</sup>UNSW Sydney · <sup>*</sup>Corresponding author
 
 ---
 
