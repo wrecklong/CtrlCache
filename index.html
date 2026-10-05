@@ -161,6 +161,7 @@
   .lead b { color:var(--fg); }
 
   .figure { margin:22px 0 0; background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow); }
+  .figure.tight { padding:8px; }
   .figure img { display:block; width:100%; height:auto; min-width:0; }
   .cap { color:var(--muted); font-size:.88rem; margin-top:12px; line-height:1.6; }
 
@@ -202,6 +203,9 @@
   .chg-note.on { color:var(--refresh); }
   .chg-note svg { width:11px; height:11px; display:inline-block; vertical-align:-1px; }
   .chg-note .pair { white-space:nowrap; }
+  .chg-note .mk { display:inline-grid; place-items:center; min-width:17px; height:17px; padding:0 3px; border-radius:4px;
+                  font:700 10px/1 "JetBrains Mono", ui-monospace, monospace; border:1px solid currentColor; vertical-align:middle; }
+  .chg-note .mk svg { width:10px; height:10px; }
   .state-chip { text-align:center; font-size:.8rem; font-weight:600; border-radius:8px; padding:5px 4px; }
   .s-init, .s-trans { color:var(--full); background:var(--full-soft); }
   .s-turn, .s-steady { color:var(--reuse); background:var(--reuse-soft); }
@@ -325,7 +329,7 @@
     </div>
 
     <div class="timeline hero-tl" role="img" aria-label="Example control sequence: each chunk's state and per-step computation">
-      <div class="tl-head"><span class="tl-title">One control stream → one cache schedule</span><span class="tl-sub">Example · 6 chunks × 3 denoising steps</span></div>
+      <div class="tl-head"><span class="tl-title">How the controls set the cache schedule</span><span class="tl-sub">Example · 6 chunks × 3 denoising steps</span></div>
       <div class="tl-scroll"><div class="tl-grid" id="tl-grid"></div></div>
       <p class="tl-say" id="tl-say"></p>
       <div class="tl-legend">
@@ -416,7 +420,7 @@
     <p class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
       Training free — model weights, sampler, control interface and persistent context are unchanged.</p>
 
-    <figure class="figure"><img src="static/images/pipeline.png" alt="CtrlCache pipeline"></figure>
+    <figure class="figure tight"><img src="static/images/pipeline.png" alt="CtrlCache pipeline"></figure>
     <p class="cap">Full pipeline. (a) Chunk-wise autoregressive denoising with residual reuse at the selected step;
       (b) the action-aware scheduling and refresh policy; (c) the frequency-mixed history prior guidance.</p>
   </section>
@@ -667,15 +671,15 @@
   const CHUNKS = [
     { keys:["W","W","W","W"], chg:[],  note:"",                          state:"Initial",    cls:"s-init",   mid:"full",    prior:false },
     { keys:["W","W","W","W"], chg:[],  note:"",                          state:"Steady",     cls:"s-steady", mid:"reuse",   prior:true  },
-    { keys:["W","W","A","A"], chg:[2], note:"<span class='pair'>W→A</span> within chunk", state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
+    { keys:["W","W","A","A"], chg:[2], note:"<span class='pair'><span class='mk'>W</span> to <span class='mk'>A</span></span> within chunk", state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
     { keys:["A","A","A","A"], chg:[],  note:"",                          state:"Steady",     cls:"s-steady", mid:"reuse",   prior:true  },
-    { keys:["←","←","←","←"], chg:[0], note:"<span class='pair'>A→←</span> at boundary", state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
+    { keys:["←","←","←","←"], chg:[0], note:"<span class='pair'><span class='mk'>A</span> to <span class='mk'>←</span></span> at boundary", state:"Transition", cls:"s-trans",  mid:"refresh", prior:false },
     { keys:["←","←","←","←"], chg:[],  note:"",                          state:"Turning",    cls:"s-turn",   mid:"reuse",   prior:false },
   ];
   const STEP = { full:["st-full","Full"], reuse:["st-reuse","Reuse"], refresh:["st-refresh","Refresh"] };
   // Thin text arrows are hard to read at key size, so draw the camera-left control as an icon.
   const ARROW = '<svg viewBox="0 0 16 16" aria-label="left"><path d="M13 8H3.5M7.5 3.5 3 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const glyphs = t => t.replace(/←/g, ARROW).replace(/→/g, '<svg viewBox="0 0 16 16"><path d="M3 8h9.5M8.5 3.5 13 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  const glyphs = t => t.replace(/←/g, ARROW);
   const cell = (cls, html, col) => `<div class="${cls}"${col === undefined ? "" : ` data-col="${col}"`}>${html}</div>`;
   let g = cell("tl-row-label", "") + CHUNKS.map((_, i) => cell("tl-chunk-h", `Chunk ${i + 1}`, i)).join("");
   g += cell("tl-row-label", "Controls") + CHUNKS.map((c, i) =>
@@ -695,7 +699,7 @@
   const SAY = [
     "<b>Chunk 1 · Initial</b> — no history yet, so every denoising step runs the full DiT.",
     "<b>Chunk 2 · Steady</b> — controls unchanged: step <i>s</i> reuses the cached residual, and the history prior guides the first step.",
-    "<b>Chunk 3 · Transition</b> — W→A inside the chunk: step <i>s</i> runs a full forward and refreshes the cache.",
+    "<b>Chunk 3 · Transition</b> — W changes to A inside the chunk: step <i>s</i> runs a full forward and refreshes the cache.",
     "<b>Chunk 4 · Steady</b> — A held: reuse at step <i>s</i>, again with the history prior.",
     "<b>Chunk 5 · Transition</b> — every input is ←, but chunk 4 ended on A, so the action changes at the chunk boundary: full forward, cache refreshed.",
     "<b>Chunk 6 · Turning</b> — sustained camera turn: reuse at step <i>s</i>, no history prior while the view rotates.",
