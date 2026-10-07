@@ -1,6 +1,6 @@
 # CtrlCache: Accelerating Interactive Video World Models with Control-Aware Caching
 
-**[Project page](https://wrecklong.github.io/CtrlCache/)** · **[Paper (PDF)](https://wrecklong.github.io/CtrlCache/static/paper.pdf)** · arXiv (coming soon) · Code (coming soon)
+**[Project page](https://wrecklong.github.io/CtrlCache/)** · **[Paper (PDF)](https://wrecklong.github.io/CtrlCache/static/paper.pdf)** · **[arXiv](https://arxiv.org/abs/2610.08777)** · Code (coming soon)
 
 Shangye Song<sup>1</sup>, Dong Gong<sup>2</sup>, Hong Jia<sup>1</sup>, Yun Sing Koh<sup>1</sup>, Xinyu Zhang<sup>1,*</sup>
 
@@ -20,10 +20,10 @@ This repository hosts the project page. The method code will be released separat
 ## Citation
 
 ```bibtex
-@article{ctrlcache2026,
+@article{song2026ctrlcache,
   title   = {CtrlCache: Accelerating Interactive Video World Models with Control-Aware Caching},
   author  = {Song, Shangye and Gong, Dong and Jia, Hong and Koh, Yun Sing and Zhang, Xinyu},
-  journal = {arXiv preprint},
+  journal = {arXiv preprint arXiv:2610.08777},
   year    = {2026}
 }
 ```
